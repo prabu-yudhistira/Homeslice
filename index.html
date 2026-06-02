@@ -67,6 +67,8 @@ body{background:var(--esp);color:var(--crm);font-family:var(--fs);overflow:hidde
 .btn-solid:hover{background:var(--crm)}
 .btn-outline{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;padding:.85rem 2rem;border:1px solid rgba(250,246,239,.4);color:var(--crm);text-decoration:none;transition:all .3s}
 .btn-outline:hover{border-color:var(--crm)}
+.btn-fullmenu-mobile{display:none}
+@media(min-width:901px){.btn-fullmenu-mobile{display:none!important}}
 .hero-scroll{position:absolute;bottom:6.1rem;right:6vw;display:flex;flex-direction:column;align-items:center;gap:.5rem;z-index:2}
 .hero-scroll span{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(250,246,239,.4);writing-mode:vertical-lr}
 .scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--gld),transparent);animation:pulse 1.8s ease-in-out infinite}
@@ -332,8 +334,9 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
   .hero-body{height:100%;min-height:100svh;justify-content:flex-end;padding:7.8rem 1.35rem 6.9rem;max-width:100%}
   .hero-title{font-size:clamp(2.85rem,12vw,5.4rem);line-height:.9;margin-bottom:1rem;max-width:92vw}
   .hero-sub{font-size:.78rem;line-height:1.65;max-width:92vw;margin-bottom:1.45rem}
-  .hero-cta{gap:.75rem}
+  .hero-cta{gap:.75rem;flex-wrap:wrap}
   .btn-solid,.btn-outline{font-size:.56rem;letter-spacing:.14em;padding:.72rem 1rem;flex:1 1 auto;min-width:145px}
+  .btn-fullmenu-mobile{display:inline-flex;flex:1 1 100%;min-width:0;text-align:center;justify-content:center}
   .hero-scroll{right:1.25rem;bottom:5.55rem;transform:scale(.9);transform-origin:bottom right}
 
   .story-right{display:block;position:absolute;inset:0;width:100%;height:100%;opacity:.32;z-index:0}
@@ -632,7 +635,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <li><a href="#" onclick="event.preventDefault();goTo(6)">Full Menu</a></li>
 <li><a href="#" onclick="event.preventDefault();goTo(7)">Visit Us</a></li>
 </ul>
-<a class="nav-wa" href="https://wa.me/6287819442998?text=Halo%20Homeslice%2C%20saya%20mau%20order/reservasi." rel="noopener" target="_blank">Order / Reserve Now</a>
+<a class="nav-wa" href="https://wa.me/6287819442998?text=Halo%20Homeslice%2C%20saya%20mau%20reservasi." rel="noopener" target="_blank">Reserve Now</a>
 </nav>
 <div class="pork-lard-footer">No Pork · No Lard</div>
 <!-- SIDE DOTS -->
@@ -657,6 +660,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <div class="hero-cta">
 <a class="btn-solid" href="#" onclick="event.preventDefault();goTo(3)">Explore Signatures</a>
 <a class="btn-outline" href="#" onclick="event.preventDefault();goTo(2)">See The Space</a>
+<a class="btn-outline btn-fullmenu-mobile" href="#" onclick="event.preventDefault();goTo(6)">Full Menu</a>
 </div>
 </div>
 <div class="hero-scroll"><div class="scroll-line"></div><span>Scroll</span></div>
