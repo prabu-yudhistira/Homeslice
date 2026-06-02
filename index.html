@@ -335,7 +335,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
   .hero-title{font-size:clamp(2.85rem,12vw,5.4rem);line-height:.9;margin-bottom:1rem;max-width:92vw}
   .hero-sub{font-size:.78rem;line-height:1.65;max-width:92vw;margin-bottom:1.45rem}
   .hero-cta{gap:.75rem;flex-wrap:wrap}
-  .btn-solid,.btn-outline{font-size:.56rem;letter-spacing:.14em;padding:.72rem 1rem;flex:1 1 auto;min-width:145px}
+  .btn-solid,.btn-outline{font-size:.54rem;letter-spacing:.13em;padding:.55rem .85rem;flex:1 1 auto;min-width:130px;min-height:40px}
   .btn-fullmenu-mobile{display:inline-flex;flex:1 1 100%;min-width:0;text-align:center;justify-content:center}
   .hero-scroll{right:1.25rem;bottom:5.55rem;transform:scale(.9);transform-origin:bottom right}
 
@@ -424,8 +424,8 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
   .nav-wa{font-size:.47rem;letter-spacing:.06em;padding:.44rem .54rem;max-width:128px;min-height:38px}
   .hero-body{padding:7rem 1rem 6.45rem}
   .hero-sub{font-size:.74rem;line-height:1.55;margin-bottom:1.15rem}
-  .hero-cta{display:grid;grid-template-columns:1fr;gap:.65rem;width:min(100%,310px)}
-  .btn-solid,.btn-outline{width:100%;min-width:0;font-size:.52rem;padding:.68rem .9rem}
+  .hero-cta{display:grid;grid-template-columns:1fr;gap:.55rem;width:min(100%,270px)}
+  .btn-solid,.btn-outline{width:100%;min-width:0;font-size:.5rem;padding:.52rem .8rem;min-height:40px}
   .hero-scroll{bottom:5.25rem;right:1rem;transform:scale(.82)}
   .story-left{padding:6.4rem 1rem 3rem}
   .story-title{font-size:clamp(2.25rem,11vw,3.4rem)}
@@ -1050,7 +1050,14 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
   secs[0].classList.add('active');
 
   // goTo
-  window.goTo=function(i){secs[i]&&secs[i].scrollIntoView({behavior:'smooth'});};
+  window.goTo=function(i){
+    var el=secs[i]; if(!el) return;
+    // Scroll the container directly (reliable on iOS Safari, where scrollIntoView
+    // inside a nested scroll-snap container often fails to move).
+    var top=el.getBoundingClientRect().top-sc.getBoundingClientRect().top+sc.scrollTop;
+    try{ sc.scrollTo({top:top,behavior:'smooth'}); }
+    catch(e){ sc.scrollTop=top; }
+  };
 
   // Carousel
   const track=document.getElementById('car-track');
