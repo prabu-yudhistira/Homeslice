@@ -88,7 +88,7 @@ body{background:var(--esp);color:var(--crm);font-family:var(--fs);overflow:hidde
 .story-title{font-family:var(--ff);font-size:clamp(2.4rem,4.5vw,4.8rem);font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.02em;margin-bottom:1.5rem;opacity:0;transform:translateY(20px);transition:opacity .8s .1s,transform .8s .1s}
 .story-body{font-size:.88rem;color:rgba(250,246,239,.62);line-height:1.9;max-width:400px;opacity:0;transition:opacity .8s .25s}
 .story-body p+p{margin-top:1rem}
-.story-nums{display:flex;gap:3rem;margin-top:2.5rem;padding-top:2.5rem;border-top:1px solid var(--line);opacity:0;transition:opacity .8s .4s}
+.story-nums{display:flex;gap:3rem;margin-top:1.5rem;padding-top:1.6rem;border-top:1px solid var(--line);opacity:0;transition:opacity .8s .4s}
 .num-val{font-family:var(--ff);font-size:3rem;font-weight:700;color:var(--gld);line-height:1}
 .num-lbl{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(250,246,239,.45);margin-top:.3rem}
 .active .ch-label,.active .story-title,.active .story-body,.active .story-nums{opacity:1;transform:none}
@@ -576,19 +576,19 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 .menu-head{display:flex;align-items:center;justify-content:space-between;gap:3rem;margin-bottom:3rem}
 .menu-head-text{min-width:0}
 .menu-head-text .menu-hd-title{margin-bottom:0}
-.menu-shuffle{position:relative;flex:0 0 auto;width:clamp(220px,22vw,300px);z-index:6}
-.menu-shuffle-frame{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:4px;border:1px solid var(--line);box-shadow:0 24px 54px rgba(22,10,6,.5);background:var(--brn)}
-.ms-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s var(--ease);will-change:opacity,transform}
+.menu-shuffle{position:relative;flex:0 0 auto;width:clamp(300px,30vw,420px);z-index:6}
+.menu-shuffle-frame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:4px;border:1px solid var(--line);box-shadow:0 24px 54px rgba(22,10,6,.5);background:var(--brn)}
+.ms-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s var(--ease);will-change:opacity,transform}
 .ms-img.on{opacity:1;animation:msZoom 7.5s var(--ease) forwards}
 @keyframes msZoom{from{transform:scale(1.02)}to{transform:scale(1.12)}}
 .menu-shuffle-frame::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(22,10,6,.85),rgba(22,10,6,.12) 42%,transparent 62%);pointer-events:none}
-.menu-shuffle-cap{position:absolute;left:1rem;right:1rem;bottom:.9rem;z-index:2}
+.menu-shuffle-cap{position:absolute;left:1rem;right:auto;max-width:62%;bottom:.85rem;z-index:2}
 .menu-shuffle-cap span{display:block;font-size:.5rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gld);margin-bottom:.28rem}
 .menu-shuffle-cap strong{display:block;font-family:var(--ff);font-size:1.2rem;font-weight:600;color:var(--crm);line-height:1.05}
 .sec-menu .menu-shuffle{opacity:0;transform:translateY(16px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .sec-menu.in .menu-shuffle{opacity:1;transform:none;transition-delay:.22s}
 /* No Pork · No Lard — plain text below the shuffle, no box */
-.menu-shuffle .menu-nopork-note{display:block;margin:.95rem auto 0;padding:0;border:0;background:transparent;text-align:center;font-size:.56rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gld);font-weight:700}
+.menu-shuffle .menu-nopork-note{position:absolute;right:1rem;bottom:.85rem;z-index:2;margin:0;padding:0;border:0;background:transparent;font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gld);font-weight:700;text-shadow:0 1px 6px rgba(22,10,6,.75)}
 /* EXPLORE EVERYTHING — quicker transform transition so the cursor-tilt feels live */
 .sec-menu .menu-head-text .menu-hd-title{transition:opacity .7s var(--ease),transform .35s var(--ease);transform-origin:50% 50%;will-change:transform}
 @media(max-width:900px){
@@ -674,12 +674,12 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <div class="ch-label">01   Our Story</div>
 <h2 class="story-title">The comfort<br/>of home,<br/><em style="font-style:italic;font-weight:300;color:var(--gld2)">without the<br/>cooking.</em></h2>
 <div class="story-body">
-<p>Homeslice was born from a simple belief: that western comfort food, made with honest ingredients and genuine craft, should feel as warm as anything cooked at home.</p>
+<p>Homeslice was born from a simple belief: that homemade comfort food, made with honest ingredients and genuine craft, should feel as warm as anything cooked at home.</p>
 <p>Every dish on our menu is built from memory — the kind of food that quiets a room and starts a conversation at the same time. We don't chase trends. We chase flavour.</p>
 <p>Welcome to Homeslice.</p>
 </div>
 <div class="story-nums">
-<div><div class="num-val">30+</div><div class="num-lbl">Dishes</div></div>
+<div><div class="num-val">20+</div><div class="num-lbl">Dishes</div></div>
 <div><div class="num-val">100%</div><div class="num-lbl">Fresh Daily</div></div>
 <div><div class="num-val">0</div><div class="num-lbl">Pork / Lard</div></div>
 </div>
@@ -850,8 +850,8 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <img alt="" class="ms-img on" decoding="async" src="assets/img/chicken-mushroom-soup.webp"/>
 <img alt="" class="ms-img" decoding="async" src=""/>
 <div class="menu-shuffle-cap"><span>From the kitchen</span><strong id="ms-name">Chicken Mushroom Soup</strong></div>
-</div>
 <div class="menu-nopork-note">No Pork · No Lard</div>
+</div>
 </div>
 </div>
 <!-- TABS -->
@@ -1225,7 +1225,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
       layers[back].classList.add('on');
       layers[front].classList.remove('on');
       front=back; idx=next;
-    },3800);
+    },2600);
   })();
 
   if(!fine || reduce) return; /* pointer effects only when it makes sense */
