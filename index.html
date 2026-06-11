@@ -618,6 +618,27 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 .menu-shuffle .menu-nopork-note{position:absolute;right:1rem;bottom:.85rem;z-index:2;margin:0;padding:0;border:0;background:transparent;font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gld);font-weight:700;text-shadow:0 1px 6px rgba(22,10,6,.75)}
 /* EXPLORE EVERYTHING — quicker transform transition so the cursor-tilt feels live */
 .sec-menu .menu-head-text .menu-hd-title{transition:opacity .7s var(--ease),transform .35s var(--ease);transform-origin:50% 50%;will-change:transform}
+
+/* ALL SECTION TITLES — "alive" glow + lift on an inner span. Reacts instantly to
+   the cursor on desktop (its own delay-free transition, independent of the
+   entrance-reveal timing) and auto-plays a gentle glow pulse the moment each
+   title scrolls into view — covering mobile/touch, where there's no cursor */
+.title-live{display:block;transform-origin:50% 50%;text-shadow:0 0 0 rgba(225,182,108,0);transition:transform .3s var(--ease),text-shadow .3s var(--ease);will-change:transform,text-shadow}
+.hero-title .title-live{text-shadow:0 0 0 rgba(225,182,108,0),0 10px 24px rgba(0,0,0,.26)}
+@media(hover:hover) and (pointer:fine){
+  .title-live:hover{transform:scale(1.045);text-shadow:0 0 28px rgba(225,182,108,.65)}
+  .hero-title .title-live:hover{text-shadow:0 0 28px rgba(225,182,108,.65),0 10px 24px rgba(0,0,0,.26)}
+}
+@keyframes titleGlow{
+  0%,100%{transform:scale(1);text-shadow:0 0 0 rgba(225,182,108,0)}
+  45%{transform:scale(1.035);text-shadow:0 0 26px rgba(225,182,108,.6)}
+}
+@keyframes titleGlowHero{
+  0%,100%{transform:scale(1);text-shadow:0 0 0 rgba(225,182,108,0),0 10px 24px rgba(0,0,0,.26)}
+  45%{transform:scale(1.035);text-shadow:0 0 26px rgba(225,182,108,.6),0 10px 24px rgba(0,0,0,.26)}
+}
+.active .title-live,.sec-menu.in .title-live{animation:titleGlow 1.1s var(--ease) .3s}
+.sec-hero.active .title-live{animation-name:titleGlowHero}
 @media(max-width:900px){
   .menu-head{flex-direction:column;align-items:stretch;gap:1.5rem;margin-bottom:2.2rem}
   .menu-shuffle{width:100%}
@@ -689,7 +710,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 </video>
 </div>
 <div class="hero-body">
-<h1 class="hero-title">Home<br/><em>cooking</em><br/>elevated.</h1>
+<h1 class="hero-title"><span class="title-live">Home<br/><em>cooking</em><br/>elevated.</span></h1>
 <p class="hero-sub">Home cooking — served in a warm, low-lit room made for long lunches and longer conversations, in the heart of Solo.</p>
 <div class="hero-cta">
 <a class="btn-solid" href="#" onclick="event.preventDefault();goTo(3)">Explore Signatures</a>
@@ -706,7 +727,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 </div>
 <div class="story-left">
 <div class="ch-label">01   Our Story</div>
-<h2 class="story-title">The comfort<br/>of home,<br/><em style="font-style:italic;font-weight:300;color:var(--gld2)">without the<br/>cooking.</em></h2>
+<h2 class="story-title"><span class="title-live">The comfort<br/>of home,<br/><em style="font-style:italic;font-weight:300;color:var(--gld2)">without the<br/>cooking.</em></span></h2>
 <div class="story-body">
 <p>Homeslice was born from a simple belief: that homemade comfort food, made with honest ingredients and genuine craft, should feel as warm as anything cooked at home.</p>
 <p>Every dish on our menu is built from memory — the kind of food that quiets a room and starts a conversation at the same time. We don't chase trends. We chase flavour.</p>
@@ -737,7 +758,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 </div>
 <div class="space-text">
 <div class="ch-label">02   The Space</div>
-<h2 class="space-title">Stay a little<br/><em>longer.</em></h2>
+<h2 class="space-title"><span class="title-live">Stay a little<br/><em>longer.</em></span></h2>
 <div class="space-body">
 <p>Homeslice was never only about the plate. It's the low golden light, the worn timber, the easy hum of a room that feels like someone's home — because that is exactly what we set out to build.</p>
 <p>Come for an early lunch and let the afternoon unfold. Pull two tables together for the people you love. This is your corner of Solo to slow down in.</p>
@@ -759,7 +780,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <div class="ch-label">03   Beef</div>
 <div class="badge">Chef Pick</div>
 <div class="sig-price">Rp 175K</div>
-<h2 class="sig-name">Garlic<br/>Butter<br/>Steak</h2>
+<h2 class="sig-name"><span class="title-live">Garlic<br/>Butter<br/>Steak</span></h2>
 <p class="sig-desc">Tenderloin steak finished in cheesy garlic butter sauce, served with baby potato and broccoli. A dish that defines what we do.</p>
 <a class="sig-wa" href="https://wa.me/6287819442998?text=Halo%20Homeslice%2C%20saya%20mau%20pesan%20Garlic%20Butter%20Steak." rel="noopener" target="_blank">Order This Dish →</a>
 </div>
@@ -773,7 +794,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <div class="ch-label">04   Beef</div>
 <div class="badge">Premium</div>
 <div class="sig-price">Rp 165K</div>
-<h2 class="sig-name">Le Boeuf<br/>et<br/>Champignon</h2>
+<h2 class="sig-name"><span class="title-live">Le Boeuf<br/>et<br/>Champignon</span></h2>
 <p class="sig-desc">Tenderloin with mashed potato, sautéed mushroom and zucchini, and a brown mustard sauce. French technique, home warmth.</p>
 <a class="sig-wa" href="https://wa.me/6287819442998?text=Halo%20Homeslice%2C%20saya%20mau%20pesan%20Le%20Boeuf%20et%20Champignon." rel="noopener" target="_blank">Order This Dish →</a>
 </div>
@@ -782,7 +803,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <section class="sec sec-carousel" data-idx="5">
 <div class="car-header" id="car-hd" style="opacity:0;transition:opacity .8s .3s">
 <div style="font-size:.58rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gld);margin-bottom:.4rem">05   Signatures</div>
-<div class="car-title">Our Best<br/>Dishes</div>
+<div class="car-title"><span class="title-live">Our Best<br/>Dishes</span></div>
 </div>
 <div class="car-track" id="car-track">
 <!-- Slide: Roasted Chicken -->
@@ -877,7 +898,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <div class="menu-head-text">
 <div class="ornament"><span>06 · Full Menu</span></div>
 <div class="menu-hd-label">Homeslice Eatery &amp; Bistro</div>
-<h2 class="menu-hd-title" id="menu-title">Explore<br/>Everything</h2>
+<h2 class="menu-hd-title" id="menu-title"><span class="title-live">Explore<br/>Everything</span></h2>
 </div>
 <div class="menu-shuffle" aria-hidden="true">
 <div class="menu-shuffle-frame">
@@ -1000,7 +1021,7 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
 <!-- Info column (right 46%) -->
 <div class="loc-text">
 <div class="ch-label">07   Find Us</div>
-<h2 class="loc-title">Come as<br/>you are.</h2>
+<h2 class="loc-title"><span class="title-live">Come as<br/>you are.</span></h2>
 <div class="loc-row">
 <div class="loc-lbl">Address</div>
 <div class="loc-val">Jl. Kutilang No.8, Kerten<br/>Laweyan, Surakarta</div>
@@ -1270,18 +1291,6 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
   })();
 
   if(!fine || reduce) return; /* pointer effects only when it makes sense */
-
-  /* ---------- EXPLORE EVERYTHING — title leans toward the cursor ---------- */
-  (function(){
-    var title=document.getElementById('menu-title'); if(!title) return;
-    title.addEventListener('mousemove',function(e){
-      var r=title.getBoundingClientRect();
-      var px=((e.clientX-r.left)/r.width-.5);
-      var py=((e.clientY-r.top)/r.height-.5);
-      title.style.transform='perspective(900px) rotateX('+(py*-7).toFixed(2)+'deg) rotateY('+(px*9).toFixed(2)+'deg)';
-    });
-    title.addEventListener('mouseleave',function(){ title.style.transform=''; });
-  })();
 
   /* ---------- Cursor spotlight glow ---------- */
   var glow=document.createElement('div');
