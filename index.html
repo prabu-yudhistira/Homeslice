@@ -1152,10 +1152,16 @@ body{min-height:100svh;height:100svh;overflow:hidden;overscroll-behavior:none}
   window.openLB=function(img){
     document.getElementById('lb-img').src=img.src;
     document.getElementById('lb').classList.add('open');
+    history.pushState({lb:true},'');
   };
-  window.closeLB=function(){document.getElementById('lb').classList.remove('open');};
+  window.closeLB=function(){
+    if(!document.getElementById('lb').classList.contains('open'))return;
+    document.getElementById('lb').classList.remove('open');
+    if(history.state&&history.state.lb)history.back();
+  };
   document.getElementById('lb').addEventListener('click',function(e){if(e.target===this)closeLB();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLB();});
+  window.addEventListener('popstate',function(){document.getElementById('lb').classList.remove('open');});
 
   // Menu tabs
   window.mTab=function(i){
