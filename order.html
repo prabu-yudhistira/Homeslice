@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Homeslice — Order & Reserve</title>
+<meta name="description" content="Order food and reserve a table at Homeslice, Surakarta." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,300&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --esp:#160A06;--brn:#2C1810;--brn2:#4A2A18;
+    --gld:#C9934A;--gld2:#E1B66C;--gld3:rgba(201,147,74,.18);
+    --crm:#FAF6EF;--crm2:#F2E8D8;
+    --line:rgba(201,147,74,.28);--line2:rgba(201,147,74,.5);
+    --ter:#B65C3A;
+    --ff:'Cormorant Garamond',Georgia,serif;
+    --fs:'Montserrat',system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px;-webkit-font-smoothing:antialiased}
+  body{background:var(--esp);color:var(--crm);font-family:var(--fs);min-height:100vh;padding-bottom:96px}
+  a{color:inherit}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+
+  header{position:sticky;top:0;z-index:30;background:rgba(22,10,6,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .hbar{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-family:var(--ff);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:1.1rem;color:var(--crm)}
+  .logo em{color:var(--gld2);font-style:italic;font-weight:300}
+  .back{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gld);text-decoration:none}
+
+  .tabs{display:flex;gap:8px;margin:18px 0 8px}
+  .tab{flex:1;padding:.8rem;text-align:center;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--crm2);background:var(--brn);border:1px solid var(--line);cursor:pointer;border-radius:10px;transition:all .25s}
+  .tab.on{background:var(--gld);color:var(--esp);border-color:var(--gld)}
+
+  .hd{font-family:var(--ff);font-size:2rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin:22px 0 4px}
+  .sub{font-size:.72rem;letter-spacing:.04em;color:var(--crm2);opacity:.8;margin-bottom:16px}
+
+  .cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;scrollbar-width:none}
+  .cats::-webkit-scrollbar{display:none}
+  .chip{white-space:nowrap;padding:.5rem 1rem;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--crm2);background:var(--brn);border:1px solid var(--line);border-radius:999px;cursor:pointer}
+  .chip.on{background:var(--gld);color:var(--esp);border-color:var(--gld)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  @media(max-width:480px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--brn);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .card .ph{aspect-ratio:16/10;background:#22130c center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--gld);font-family:var(--ff);font-size:2rem}
+  .card .bd{padding:12px 12px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .card .nm{font-weight:600;font-size:.92rem;line-height:1.2}
+  .card .ds{font-size:.7rem;color:var(--crm2);opacity:.7;line-height:1.3;flex:1}
+  .card .rw{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+  .price{font-family:var(--ff);font-size:1.25rem;font-weight:600;color:var(--gld)}
+  .add{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:.5rem .9rem;background:var(--gld);color:var(--esp);border:none;border-radius:8px;cursor:pointer}
+  .add:active{transform:scale(.96)}
+  .ask{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--crm2);opacity:.65}
+  .badge{align-self:flex-start;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--gld2);border:1px solid var(--line);padding:.2rem .5rem;border-radius:6px}
+
+  /* sticky cart bar */
+  .cartbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--gld);color:var(--esp);display:none}
+  .cartbar.show{display:block}
+  .cartbar .in{max-width:760px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer}
+  .cartbar b{font-weight:700}
+  .cartbar .tot{margin-left:auto;font-weight:700}
+
+  /* cart sheet */
+  .overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:none}
+  .overlay.show{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--esp);border-top:1px solid var(--line2);border-radius:18px 18px 0 0;max-height:90vh;overflow:auto;transform:translateY(100%);transition:transform .3s var(--fs);display:none}
+  .sheet.show{display:block;transform:translateY(0)}
+  .sheet .in{max-width:760px;margin:0 auto;padding:18px 18px 28px}
+  .sheet h3{font-family:var(--ff);font-size:1.5rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+  .x{background:none;border:none;color:var(--crm);font-size:1.4rem;cursor:pointer;line-height:1}
+  .line{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .line .nm{flex:1;font-size:.85rem}
+  .qtybox{display:flex;align-items:center;gap:10px}
+  .qb{width:30px;height:30px;border-radius:50%;border:1px solid var(--line2);background:var(--brn);color:var(--gld);font-size:1.1rem;cursor:pointer}
+  .ltot{width:92px;text-align:right;font-weight:600;color:var(--gld)}
+
+  label.f{display:block;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gld);margin:14px 0 6px}
+  input.f,select.f,textarea.f{width:100%;background:var(--brn);border:1px solid var(--line);border-radius:10px;color:var(--crm);font-family:var(--fs);font-size:.95rem;padding:.8rem .9rem}
+  textarea.f{resize:vertical;min-height:64px}
+  .seg{display:flex;gap:8px}
+  .seg .opt{flex:1;text-align:center;padding:.7rem;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;background:var(--brn);border:1px solid var(--line);border-radius:10px;cursor:pointer;color:var(--crm2)}
+  .seg .opt.on{background:var(--gld);color:var(--esp);border-color:var(--gld)}
+  .totalrow{display:flex;justify-content:space-between;align-items:center;margin:16px 0;font-size:1.05rem}
+  .totalrow b{font-family:var(--ff);font-size:1.6rem;color:var(--gld)}
+  .submit{width:100%;padding:1rem;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700;background:var(--gld);color:var(--esp);border:none;border-radius:12px;cursor:pointer}
+  .submit:disabled{opacity:.55;cursor:default}
+
+  .empty,.loading{text-align:center;color:var(--crm2);opacity:.75;padding:48px 0;font-size:.85rem}
+  .hidden{display:none!important}
+
+  .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);z-index:60;background:var(--crm);color:var(--esp);padding:.8rem 1.2rem;border-radius:10px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:all .3s;max-width:88vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .ok{text-align:center;padding:40px 10px}
+  .ok .big{font-family:var(--ff);font-size:2.2rem;color:var(--gld);text-transform:uppercase}
+  .ok .code{font-size:1.1rem;font-weight:700;margin:8px 0}
+  .ok button{margin-top:18px;padding:.8rem 1.6rem;background:none;border:1px solid var(--gld);color:var(--gld);border-radius:10px;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+
+  .cfgwarn{background:var(--ter);color:#fff;text-align:center;font-size:.72rem;padding:.6rem;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div id="cfgwarn" class="cfgwarn hidden">⚠ Supabase not configured — set SUPABASE_URL / SUPABASE_ANON_KEY in order.html.</div>
+
+<header>
+  <div class="wrap hbar">
+    <div class="logo">Home<em>slice</em></div>
+    <a class="back" href="index.html">← Back to site</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tabs">
+    <div class="tab on" id="tabOrder" onclick="switchTab('order')">Order</div>
+    <div class="tab" id="tabReserve" onclick="switchTab('reserve')">Reserve a Table</div>
+  </div>
+
+  <!-- ORDER -->
+  <section id="paneOrder">
+    <h1 class="hd">Order</h1>
+    <p class="sub">Pick your dishes — pay when you pick up or at the table.</p>
+    <div class="cats" id="cats"></div>
+    <div id="menu"><div class="loading">Loading menu…</div></div>
+  </section>
+
+  <!-- RESERVE -->
+  <section id="paneReserve" class="hidden">
+    <h1 class="hd">Reserve a Table</h1>
+    <p class="sub">Tell us when, and we'll have your table ready.</p>
+    <div id="reserveForm">
+      <label class="f">Name *</label>
+      <input class="f" id="rName" placeholder="Your name" />
+      <label class="f">WhatsApp / Phone</label>
+      <input class="f" id="rPhone" inputmode="tel" placeholder="08xx…" />
+      <label class="f">Party size</label>
+      <input class="f" id="rParty" type="number" min="1" max="50" value="2" />
+      <label class="f">Date</label>
+      <input class="f" id="rDate" type="date" />
+      <label class="f">Time</label>
+      <input class="f" id="rTime" type="time" />
+      <label class="f">Note (optional)</label>
+      <textarea class="f" id="rNote" placeholder="High chair, window seat, allergies…"></textarea>
+      <button class="submit" id="rSubmit" style="margin-top:18px" onclick="submitReservation()">Request reservation</button>
+    </div>
+    <div id="reserveOk" class="ok hidden">
+      <div class="big">See you soon</div>
+      <div class="code" id="reserveCode"></div>
+      <p class="sub" style="margin-top:6px">We'll confirm your table shortly.</p>
+      <button onclick="resetReserve()">New reservation</button>
+    </div>
+  </section>
+</main>
+
+<!-- sticky cart bar -->
+<div class="cartbar" id="cartbar" onclick="openCart()">
+  <div class="in">
+    <span>🛒 <b id="cartCount">0</b> items</span>
+    <span class="tot" id="cartTotal">Rp 0</span>
+    <span style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase">View ▴</span>
+  </div>
+</div>
+
+<!-- cart sheet -->
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="sheet" id="sheet">
+  <div class="in">
+    <h3>Your Order <button class="x" onclick="closeCart()">✕</button></h3>
+    <div id="cartLines"></div>
+
+    <div id="checkout">
+      <label class="f">Order type</label>
+      <div class="seg" id="typeSeg">
+        <div class="opt on" data-type="takeaway" onclick="setType(this)">Takeaway</div>
+        <div class="opt" data-type="dine_in" onclick="setType(this)">Dine-in</div>
+        <div class="opt" data-type="delivery" onclick="setType(this)">Delivery</div>
+      </div>
+      <label class="f">Name *</label>
+      <input class="f" id="cName" placeholder="Your name" />
+      <label class="f">WhatsApp / Phone *</label>
+      <input class="f" id="cPhone" inputmode="tel" placeholder="08xx…" />
+      <label class="f">Note (optional)</label>
+      <textarea class="f" id="cNote" placeholder="No onions, extra sauce…"></textarea>
+      <div class="totalrow"><span>Total</span><b id="coTotal">Rp 0</b></div>
+      <button class="submit" id="placeBtn" onclick="placeOrder()">Place order</button>
+    </div>
+
+    <div id="orderOk" class="ok hidden">
+      <div class="big">Order received</div>
+      <div class="code" id="orderCode"></div>
+      <p class="sub" style="margin-top:6px">We're preparing it — pay on pickup / at the table.</p>
+      <button onclick="resetOrder()">New order</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ───── CONFIG: Supabase project URL + publishable (public) key ───── */
+  const SUPABASE_URL = 'https://pvfpjthtfnbffakamvtk.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_g4_V0YhzUxvHqbjLSdtSJw_aGCj2zNN';
+  /* ──────────────────────────────────────────────────────────────────── */
+
+  const configured = !/YOUR-/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
+  const REST = SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1';
+  const HEAD = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
+  const rp = new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 });
+  const fmt = n => rp.format(n || 0).replace('Rp', 'Rp ');
+
+  const cart = new Map();   // id -> {item, qty}
+  let orderType = 'takeaway';
+  let allItems = [];
+  let activeCat = null;
+
+  if (!configured) document.getElementById('cfgwarn').classList.remove('hidden');
+
+  /* ---------- tabs ---------- */
+  function switchTab(t){
+    const o = t === 'order';
+    document.getElementById('tabOrder').classList.toggle('on', o);
+    document.getElementById('tabReserve').classList.toggle('on', !o);
+    document.getElementById('paneOrder').classList.toggle('hidden', !o);
+    document.getElementById('paneReserve').classList.toggle('hidden', o);
+    document.getElementById('cartbar').classList.toggle('show', o && cart.size > 0);
+  }
+
+  /* ---------- menu ---------- */
+  async function loadMenu(){
+    if (!configured){ document.getElementById('menu').innerHTML = '<div class="empty">Menu unavailable until Supabase is configured.</div>'; return; }
+    try{
+      const url = REST + '/menu_items?select=id,category,name,description,price,price_text,image_filename,badge,sort_order&is_available=eq.true&order=sort_order.asc';
+      const res = await fetch(url, { headers: HEAD });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      allItems = await res.json();
+      buildCats();
+      renderMenu();
+    }catch(e){
+      document.getElementById('menu').innerHTML = '<div class="empty">Could not load the menu. Please try again.</div>';
+    }
+  }
+
+  function buildCats(){
+    const cats = [...new Set(allItems.map(i => i.category).filter(Boolean))];
+    const el = document.getElementById('cats');
+    el.innerHTML = '<div class="chip on" data-cat="" onclick="pickCat(this)">All</div>' +
+      cats.map(c => `<div class="chip" data-cat="${esc(c)}" onclick="pickCat(this)">${esc(c)}</div>`).join('');
+  }
+  function pickCat(el){
+    activeCat = el.dataset.cat || null;
+    document.querySelectorAll('#cats .chip').forEach(c => c.classList.toggle('on', c === el));
+    renderMenu();
+  }
+
+  function renderMenu(){
+    const items = allItems.filter(i => !activeCat || i.category === activeCat);
+    if (!items.length){ document.getElementById('menu').innerHTML = '<div class="empty">No items here yet.</div>'; return; }
+    document.getElementById('menu').innerHTML = '<div class="grid">' + items.map(cardHTML).join('') + '</div>';
+  }
+
+  function cardHTML(i){
+    const img = i.image_filename ? `style="background-image:url('assets/img/${esc(i.image_filename)}')"` : '';
+    const initial = (i.name || '?').trim().charAt(0).toUpperCase();
+    const orderable = i.price != null && i.price > 0;
+    const action = orderable
+      ? `<button class="add" onclick="addToCart(${i.id})">Add</button>`
+      : `<span class="ask">Ask server</span>`;
+    const priceTxt = orderable ? fmt(i.price) : (i.price_text || '');
+    return `<div class="card">
+      <div class="ph" ${img}>${i.image_filename ? '' : initial}</div>
+      <div class="bd">
+        ${i.badge ? `<span class="badge">${esc(i.badge)}</span>` : ''}
+        <div class="nm">${esc(i.name)}</div>
+        ${i.description ? `<div class="ds">${esc(i.description)}</div>` : '<div class="ds"></div>'}
+        <div class="rw"><span class="price">${priceTxt}</span>${action}</div>
+      </div>
+    </div>`;
+  }
+
+  /* ---------- cart ---------- */
+  function addToCart(id){
+    const item = allItems.find(i => i.id === id);
+    if (!item) return;
+    const e = cart.get(id) || { item, qty: 0 };
+    e.qty++; cart.set(id, e);
+    updateCartBar();
+    toast(item.name + ' added');
+  }
+  function changeQty(id, d){
+    const e = cart.get(id); if (!e) return;
+    e.qty += d;
+    if (e.qty <= 0) cart.delete(id);
+    updateCartBar(); renderCart();
+    if (cart.size === 0) closeCart();
+  }
+  function cartTotal(){ let t=0; cart.forEach(e => t += e.item.price * e.qty); return t; }
+  function cartCount(){ let n=0; cart.forEach(e => n += e.qty); return n; }
+  function updateCartBar(){
+    const n = cartCount();
+    document.getElementById('cartCount').textContent = n;
+    document.getElementById('cartTotal').textContent = fmt(cartTotal());
+    document.getElementById('cartbar').classList.toggle('show', n > 0 && !document.getElementById('paneOrder').classList.contains('hidden'));
+  }
+  function renderCart(){
+    const el = document.getElementById('cartLines');
+    if (cart.size === 0){ el.innerHTML = '<div class="empty">Your cart is empty.</div>'; }
+    else {
+      let html = '';
+      cart.forEach(e => {
+        html += `<div class="line">
+          <span class="nm">${esc(e.item.name)}</span>
+          <span class="qtybox">
+            <button class="qb" onclick="changeQty(${e.item.id},-1)">−</button>
+            <span>${e.qty}</span>
+            <button class="qb" onclick="changeQty(${e.item.id},1)">+</button>
+          </span>
+          <span class="ltot">${fmt(e.item.price * e.qty)}</span>
+        </div>`;
+      });
+      el.innerHTML = html;
+    }
+    document.getElementById('coTotal').textContent = fmt(cartTotal());
+  }
+  function openCart(){ if (cart.size === 0) return; renderCart(); document.getElementById('overlay').classList.add('show'); document.getElementById('sheet').classList.add('show'); }
+  function closeCart(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); }
+  function setType(el){ orderType = el.dataset.type; document.querySelectorAll('#typeSeg .opt').forEach(o => o.classList.toggle('on', o === el)); }
+
+  async function placeOrder(){
+    const name = document.getElementById('cName').value.trim();
+    const phone = document.getElementById('cPhone').value.trim();
+    if (cart.size === 0) return toast('Your cart is empty');
+    if (!name) return toast('Please enter your name');
+    if (!phone) return toast('Please enter your phone');
+    const btn = document.getElementById('placeBtn');
+    btn.disabled = true; btn.textContent = 'Placing…';
+    const items = [...cart.values()].map(e => ({ menu_item_id: e.item.id, qty: e.qty }));
+    try{
+      const id = await rpc('create_website_order', {
+        customer_name: name, customer_phone: phone,
+        order_type: orderType, note: document.getElementById('cNote').value.trim(),
+        items
+      });
+      document.getElementById('orderCode').textContent = 'Order #' + String(id).padStart(4,'0');
+      document.getElementById('checkout').classList.add('hidden');
+      document.getElementById('orderOk').classList.remove('hidden');
+      cart.clear(); updateCartBar();
+    }catch(e){
+      toast('Could not place order. Please try again.');
+      btn.disabled = false; btn.textContent = 'Place order';
+    }
+  }
+  function resetOrder(){
+    document.getElementById('orderOk').classList.add('hidden');
+    document.getElementById('checkout').classList.remove('hidden');
+    const b = document.getElementById('placeBtn'); b.disabled = false; b.textContent = 'Place order';
+    document.getElementById('cName').value=''; document.getElementById('cPhone').value=''; document.getElementById('cNote').value='';
+    closeCart();
+  }
+
+  /* ---------- reservation ---------- */
+  async function submitReservation(){
+    const name = document.getElementById('rName').value.trim();
+    if (!name) return toast('Please enter your name');
+    const date = document.getElementById('rDate').value;
+    const time = document.getElementById('rTime').value;
+    let reserved_for = '';
+    if (date) reserved_for = new Date(date + 'T' + (time || '19:00')).toISOString();
+    const btn = document.getElementById('rSubmit');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try{
+      const id = await rpc('create_reservation', {
+        customer_name: name,
+        customer_phone: document.getElementById('rPhone').value.trim(),
+        party_size: parseInt(document.getElementById('rParty').value || '2', 10),
+        reserved_for,
+        note: document.getElementById('rNote').value.trim()
+      });
+      document.getElementById('reserveCode').textContent = 'Reservation R#' + String(id).padStart(4,'0');
+      document.getElementById('reserveForm').classList.add('hidden');
+      document.getElementById('reserveOk').classList.remove('hidden');
+    }catch(e){
+      toast('Could not send reservation. Please try again.');
+      btn.disabled = false; btn.textContent = 'Request reservation';
+    }
+  }
+  function resetReserve(){
+    document.getElementById('reserveOk').classList.add('hidden');
+    document.getElementById('reserveForm').classList.remove('hidden');
+    const b = document.getElementById('rSubmit'); b.disabled = false; b.textContent = 'Request reservation';
+    ['rName','rPhone','rDate','rTime','rNote'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('rParty').value = '2';
+  }
+
+  /* ---------- helpers ---------- */
+  async function rpc(fn, payload){
+    const res = await fetch(REST + '/rpc/' + fn, {
+      method: 'POST',
+      headers: { ...HEAD, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_payload: payload })
+    });
+    if (!res.ok){ throw new Error('HTTP ' + res.status + ' ' + await res.text()); }
+    return await res.json();
+  }
+  function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  let toastT;
+  function toast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  loadMenu();
+</script>
+</body>
+</html>
