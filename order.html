@@ -54,6 +54,10 @@
   .add{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:.5rem .9rem;background:var(--gld);color:var(--esp);border:none;border-radius:8px;cursor:pointer}
   .add:active{transform:scale(.96)}
   .ask{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--crm2);opacity:.65}
+  .vars{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .vbtn{flex:1 1 calc(50% - 3px);min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--brn2);color:var(--crm);border:1px solid var(--line);border-radius:9px;padding:.5rem .7rem;font-family:var(--fs);font-size:.72rem;font-weight:600;cursor:pointer;text-align:left}
+  .vbtn b{font-family:var(--ff);font-size:.95rem;font-weight:600;color:var(--gld2);white-space:nowrap}
+  .vbtn:active{transform:scale(.97)}
   .badge{align-self:flex-start;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--gld2);border:1px solid var(--line);padding:.2rem .5rem;border-radius:6px}
 
   /* sticky cart bar */
@@ -210,7 +214,7 @@
   const rp = new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 });
   const fmt = n => rp.format(n || 0).replace('Rp', 'Rp ');
 
-  const cart = new Map();   // id -> {item, qty}
+  const cart = new Map();   // "itemId:variantId" -> {menu_item_id, variant_id, name, variant_name, price, qty}
   let orderType = 'takeaway';
   let allItems = [];
   let activeCat = null;
@@ -231,10 +235,19 @@
   async function loadMenu(){
     if (!configured){ document.getElementById('menu').innerHTML = '<div class="empty">Menu unavailable until Supabase is configured.</div>'; return; }
     try{
-      const url = REST + '/menu_items?select=id,category,name,description,price,price_text,image_filename,badge,sort_order&is_available=eq.true&order=sort_order.asc';
-      const res = await fetch(url, { headers: HEAD });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      allItems = await res.json();
+      const itemsUrl = REST + '/menu_items?select=id,category,name,description,price,price_text,image_filename,badge,sort_order&is_available=eq.true&order=sort_order.asc';
+      const varsUrl  = REST + '/menu_item_variants?select=id,menu_item_id,name,price,sort_order&order=menu_item_id.asc,sort_order.asc';
+      const [items, vars] = await Promise.all([
+        fetch(itemsUrl, { headers: HEAD }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
+        fetch(varsUrl,  { headers: HEAD }).then(r => r.ok ? r.json() : []),
+      ]);
+      const byItem = {};
+      for (const v of vars) (byItem[v.menu_item_id] = byItem[v.menu_item_id] || []).push(v);
+      // Attach variants, then show only items that can actually be priced and
+      // ordered — a fixed price, or at least one variant. No more "ask server".
+      allItems = items
+        .map(i => ({ ...i, variants: byItem[i.id] || [] }))
+        .filter(i => (i.price != null && i.price > 0) || i.variants.length > 0);
       buildCats();
       renderMenu();
     }catch(e){
@@ -261,41 +274,68 @@
   }
 
   function cardHTML(i){
-    const img = i.image_filename ? `style="background-image:url('assets/img/${esc(i.image_filename)}')"` : '';
+    // Photos: POS uploads store a full URL; website assets store a bare
+    // filename under assets/img/. Handle both.
+    const raw = i.image_filename || '';
+    const src = raw ? (/^https?:\/\//.test(raw) ? raw : 'assets/img/' + raw) : '';
+    const img = src ? `style="background-image:url('${esc(src)}')"` : '';
     const initial = (i.name || '?').trim().charAt(0).toUpperCase();
-    const orderable = i.price != null && i.price > 0;
-    const action = orderable
-      ? `<button class="add" onclick="addToCart(${i.id})">Add</button>`
-      : `<span class="ask">Ask server</span>`;
-    const priceTxt = orderable ? fmt(i.price) : (i.price_text || '');
+    const hasVars = i.variants && i.variants.length > 0;
+
+    let priceTxt, below = '';
+    if (hasVars){
+      const min = Math.min(...i.variants.map(v => v.price));
+      priceTxt = 'from ' + fmt(min);
+      below = '<div class="vars">' + i.variants.map(v =>
+        `<button class="vbtn" onclick="addToCart(${i.id},${v.id})">`
+        + `<span>${esc(v.name)}</span><b>${fmt(v.price)}</b></button>`).join('') + '</div>';
+    } else {
+      priceTxt = fmt(i.price);
+    }
+    const addBtn = hasVars
+      ? ''
+      : `<button class="add" onclick="addToCart(${i.id})">Add</button>`;
     return `<div class="card">
-      <div class="ph" ${img}>${i.image_filename ? '' : initial}</div>
+      <div class="ph" ${img}>${src ? '' : initial}</div>
       <div class="bd">
         ${i.badge ? `<span class="badge">${esc(i.badge)}</span>` : ''}
         <div class="nm">${esc(i.name)}</div>
         ${i.description ? `<div class="ds">${esc(i.description)}</div>` : '<div class="ds"></div>'}
-        <div class="rw"><span class="price">${priceTxt}</span>${action}</div>
+        <div class="rw"><span class="price">${priceTxt}</span>${addBtn}</div>
+        ${below}
       </div>
     </div>`;
   }
 
-  /* ---------- cart ---------- */
-  function addToCart(id){
+  /* ---------- cart (keyed by item + variant) ---------- */
+  function keyOf(itemId, variantId){ return itemId + ':' + (variantId || ''); }
+
+  function addToCart(id, variantId){
     const item = allItems.find(i => i.id === id);
     if (!item) return;
-    const e = cart.get(id) || { item, qty: 0 };
-    e.qty++; cart.set(id, e);
+    let name = item.name, price = item.price, vname = null;
+    const vid = variantId || null;
+    if (vid){
+      const v = (item.variants || []).find(x => x.id === vid);
+      if (!v) return;
+      vname = v.name; price = v.price;
+    }
+    if (price == null || price <= 0) return;
+    const key = keyOf(id, vid);
+    const e = cart.get(key) ||
+      { menu_item_id: id, variant_id: vid, name, variant_name: vname, price, qty: 0 };
+    e.qty++; cart.set(key, e);
     updateCartBar();
-    toast(item.name + ' added');
+    toast((vname ? name + ' (' + vname + ')' : name) + ' added');
   }
-  function changeQty(id, d){
-    const e = cart.get(id); if (!e) return;
+  function changeQty(key, d){
+    const e = cart.get(key); if (!e) return;
     e.qty += d;
-    if (e.qty <= 0) cart.delete(id);
+    if (e.qty <= 0) cart.delete(key);
     updateCartBar(); renderCart();
     if (cart.size === 0) closeCart();
   }
-  function cartTotal(){ let t=0; cart.forEach(e => t += e.item.price * e.qty); return t; }
+  function cartTotal(){ let t=0; cart.forEach(e => t += e.price * e.qty); return t; }
   function cartCount(){ let n=0; cart.forEach(e => n += e.qty); return n; }
   function updateCartBar(){
     const n = cartCount();
@@ -308,15 +348,16 @@
     if (cart.size === 0){ el.innerHTML = '<div class="empty">Your cart is empty.</div>'; }
     else {
       let html = '';
-      cart.forEach(e => {
+      cart.forEach((e, key) => {
+        const label = e.variant_name ? `${e.name} · ${e.variant_name}` : e.name;
         html += `<div class="line">
-          <span class="nm">${esc(e.item.name)}</span>
+          <span class="nm">${esc(label)}</span>
           <span class="qtybox">
-            <button class="qb" onclick="changeQty(${e.item.id},-1)">−</button>
+            <button class="qb" onclick="changeQty('${key}',-1)">−</button>
             <span>${e.qty}</span>
-            <button class="qb" onclick="changeQty(${e.item.id},1)">+</button>
+            <button class="qb" onclick="changeQty('${key}',1)">+</button>
           </span>
-          <span class="ltot">${fmt(e.item.price * e.qty)}</span>
+          <span class="ltot">${fmt(e.price * e.qty)}</span>
         </div>`;
       });
       el.innerHTML = html;
@@ -335,7 +376,7 @@
     if (!phone) return toast('Please enter your phone');
     const btn = document.getElementById('placeBtn');
     btn.disabled = true; btn.textContent = 'Placing…';
-    const items = [...cart.values()].map(e => ({ menu_item_id: e.item.id, qty: e.qty }));
+    const items = [...cart.values()].map(e => ({ menu_item_id: e.menu_item_id, variant_id: e.variant_id, qty: e.qty }));
     try{
       const id = await rpc('create_website_order', {
         customer_name: name, customer_phone: phone,
