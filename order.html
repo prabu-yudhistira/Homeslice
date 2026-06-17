@@ -104,6 +104,24 @@
   .ok button{margin-top:18px;padding:.8rem 1.6rem;background:none;border:1px solid var(--gld);color:var(--gld);border-radius:10px;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
 
   .cfgwarn{background:var(--ter);color:#fff;text-align:center;font-size:.72rem;padding:.6rem;letter-spacing:.04em}
+
+  /* cart summary + deposit + transfer proof */
+  .sumrows{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+  .srow{display:flex;justify-content:space-between;font-size:.82rem;color:var(--crm2);padding:3px 0}
+  .deprow{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:.78rem;letter-spacing:.04em;color:var(--gld2);font-weight:600}
+  .deprow b{font-family:var(--ff);font-size:1.2rem;color:var(--gld)}
+  .depbox{margin:16px 0 8px;padding:16px;background:var(--brn);border:1px solid var(--line2);border-radius:14px}
+  .dephead{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--crm2);text-align:center}
+  .depamt{font-family:var(--ff);font-size:2rem;font-weight:700;color:var(--gld);margin:2px 0 14px;text-align:center}
+  .bankrow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--esp);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:left}
+  .bankrow .bk{font-size:.7rem;color:var(--crm2)}
+  .bankrow .acc{font-family:var(--ff);font-size:1.3rem;font-weight:700;color:var(--crm);letter-spacing:.02em;margin:2px 0}
+  .copy{flex:none;background:var(--gld);color:var(--esp);border:none;border-radius:8px;padding:.55rem .85rem;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer}
+  .depnote{font-size:.74rem;color:var(--crm2);margin:14px 0 8px;text-align:center}
+  .waBtn{display:block;background:#25D366;color:#06371d;text-decoration:none;text-align:center;font-weight:700;padding:.85rem;border-radius:10px;font-size:.8rem}
+  .upBtn{display:block;margin-top:8px;text-align:center;background:none;border:1px solid var(--gld);color:var(--gld);padding:.8rem;border-radius:10px;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;cursor:pointer}
+  .upstat{font-size:.76rem;color:var(--crm2);margin-top:8px;text-align:center;min-height:1em}
+  .upstat.ok2{color:var(--gld2);font-weight:600}
 </style>
 </head>
 <body>
@@ -125,7 +143,7 @@
   <!-- ORDER -->
   <section id="paneOrder">
     <h1 class="hd">Order</h1>
-    <p class="sub">Pick your dishes — pay when you pick up or at the table.</p>
+    <p class="sub">Pick your dishes — a 50% deposit confirms your order; pay the rest on pickup / at the table.</p>
     <div class="cats" id="cats"></div>
     <div id="menu"><div class="loading">Loading menu…</div></div>
   </section>
@@ -147,12 +165,13 @@
       <input class="f" id="rTime" type="time" />
       <label class="f">Note (optional)</label>
       <textarea class="f" id="rNote" placeholder="High chair, window seat, allergies…"></textarea>
-      <button class="submit" id="rSubmit" style="margin-top:18px" onclick="submitReservation()">Request reservation</button>
+      <p class="sub" style="margin-top:14px">A <b style="color:var(--gld2)">Rp 50,000 / person</b> deposit confirms your booking.</p>
+      <button class="submit" id="rSubmit" style="margin-top:8px" onclick="submitReservation()">Request reservation</button>
     </div>
     <div id="reserveOk" class="ok hidden">
-      <div class="big">See you soon</div>
+      <div class="big">Almost done</div>
       <div class="code" id="reserveCode"></div>
-      <p class="sub" style="margin-top:6px">We'll confirm your table shortly.</p>
+      <div id="resPay"></div>
       <button onclick="resetReserve()">New reservation</button>
     </div>
   </section>
@@ -188,13 +207,14 @@
       <label class="f">Note (optional)</label>
       <textarea class="f" id="cNote" placeholder="No onions, extra sauce…"></textarea>
       <div class="totalrow"><span>Total</span><b id="coTotal">Rp 0</b></div>
+      <div class="deprow"><span>50% deposit to confirm</span><b id="coDeposit">Rp 0</b></div>
       <button class="submit" id="placeBtn" onclick="placeOrder()">Place order</button>
     </div>
 
     <div id="orderOk" class="ok hidden">
       <div class="big">Order received</div>
       <div class="code" id="orderCode"></div>
-      <p class="sub" style="margin-top:6px">We're preparing it — pay on pickup / at the table.</p>
+      <div id="orderPay"></div>
       <button onclick="resetOrder()">New order</button>
     </div>
   </div>
@@ -213,11 +233,17 @@
   const HEAD = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
   const rp = new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 });
   const fmt = n => rp.format(n || 0).replace('Rp', 'Rp ');
+  const STORAGE = SUPABASE_URL.replace(/\/+$/, '') + '/storage/v1';
+
+  /* Deposit payment details (shown on the confirmation screen). */
+  const BANK = { bank:'Bank BRI', acc:'215301888333567', holder:'Yosef Aria Yudo' };
+  const WA = '6287819442998';
 
   const cart = new Map();   // "itemId:variantId" -> {menu_item_id, variant_id, name, variant_name, price, qty}
   let orderType = 'takeaway';
   let allItems = [];
   let activeCat = null;
+  let taxPct = 0, svcPct = 0;   // PB1 + service %, loaded from store_settings
 
   if (!configured) document.getElementById('cfgwarn').classList.remove('hidden');
 
@@ -237,10 +263,15 @@
     try{
       const itemsUrl = REST + '/menu_items?select=id,category,name,description,price,price_text,image_filename,badge,sort_order&is_available=eq.true&order=sort_order.asc';
       const varsUrl  = REST + '/menu_item_variants?select=id,menu_item_id,name,price,sort_order&order=menu_item_id.asc,sort_order.asc';
-      const [items, vars] = await Promise.all([
+      const setUrl   = REST + '/store_settings?select=tax_percent,service_percent&id=eq.1';
+      const [items, vars, settings] = await Promise.all([
         fetch(itemsUrl, { headers: HEAD }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }),
         fetch(varsUrl,  { headers: HEAD }).then(r => r.ok ? r.json() : []),
+        fetch(setUrl,   { headers: HEAD }).then(r => r.ok ? r.json() : []),
       ]);
+      const s = (settings && settings[0]) || {};
+      taxPct = +s.tax_percent || 0;
+      svcPct = +s.service_percent || 0;
       const byItem = {};
       for (const v of vars) (byItem[v.menu_item_id] = byItem[v.menu_item_id] || []).push(v);
       // Attach variants, then show only items that can actually be priced and
@@ -335,12 +366,20 @@
     updateCartBar(); renderCart();
     if (cart.size === 0) closeCart();
   }
-  function cartTotal(){ let t=0; cart.forEach(e => t += e.price * e.qty); return t; }
   function cartCount(){ let n=0; cart.forEach(e => n += e.qty); return n; }
+  // subtotal → service (svcPct) → tax (taxPct) → total; deposit = 50% of total.
+  // Same maths as the cashier (service on subtotal, tax on subtotal+service).
+  function calcTotals(){
+    let sub = 0; cart.forEach(e => sub += e.price * e.qty);
+    const svc = Math.round(sub * svcPct / 100);
+    const tax = Math.round((sub + svc) * taxPct / 100);
+    const total = sub + svc + tax;
+    return { sub, svc, tax, total, deposit: Math.round(total / 2) };
+  }
   function updateCartBar(){
     const n = cartCount();
     document.getElementById('cartCount').textContent = n;
-    document.getElementById('cartTotal').textContent = fmt(cartTotal());
+    document.getElementById('cartTotal').textContent = fmt(calcTotals().total);
     document.getElementById('cartbar').classList.toggle('show', n > 0 && !document.getElementById('paneOrder').classList.contains('hidden'));
   }
   function renderCart(){
@@ -360,9 +399,18 @@
           <span class="ltot">${fmt(e.price * e.qty)}</span>
         </div>`;
       });
+      const t = calcTotals();
+      html += '<div class="sumrows">'
+        + `<div class="srow"><span>Subtotal</span><span>${fmt(t.sub)}</span></div>`
+        + (svcPct ? `<div class="srow"><span>Service (${svcPct}%)</span><span>${fmt(t.svc)}</span></div>` : '')
+        + (taxPct ? `<div class="srow"><span>Tax / PB1 (${taxPct}%)</span><span>${fmt(t.tax)}</span></div>` : '')
+        + '</div>';
       el.innerHTML = html;
     }
-    document.getElementById('coTotal').textContent = fmt(cartTotal());
+    const t = calcTotals();
+    document.getElementById('coTotal').textContent = fmt(t.total);
+    const dep = document.getElementById('coDeposit');
+    if (dep) dep.textContent = fmt(t.deposit);
   }
   function openCart(){ if (cart.size === 0) return; renderCart(); document.getElementById('overlay').classList.add('show'); document.getElementById('sheet').classList.add('show'); }
   function closeCart(){ document.getElementById('overlay').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); }
@@ -377,6 +425,7 @@
     const btn = document.getElementById('placeBtn');
     btn.disabled = true; btn.textContent = 'Placing…';
     const items = [...cart.values()].map(e => ({ menu_item_id: e.menu_item_id, variant_id: e.variant_id, qty: e.qty }));
+    const t = calcTotals();
     try{
       const id = await rpc('create_website_order', {
         customer_name: name, customer_phone: phone,
@@ -384,6 +433,7 @@
         items
       });
       document.getElementById('orderCode').textContent = 'Order #' + String(id).padStart(4,'0');
+      document.getElementById('orderPay').innerHTML = payPanelHTML('order', id, t.deposit);
       document.getElementById('checkout').classList.add('hidden');
       document.getElementById('orderOk').classList.remove('hidden');
       cart.clear(); updateCartBar();
@@ -408,17 +458,19 @@
     const time = document.getElementById('rTime').value;
     let reserved_for = '';
     if (date) reserved_for = new Date(date + 'T' + (time || '19:00')).toISOString();
+    const party = Math.max(parseInt(document.getElementById('rParty').value || '2', 10) || 2, 1);
     const btn = document.getElementById('rSubmit');
     btn.disabled = true; btn.textContent = 'Sending…';
     try{
       const id = await rpc('create_reservation', {
         customer_name: name,
         customer_phone: document.getElementById('rPhone').value.trim(),
-        party_size: parseInt(document.getElementById('rParty').value || '2', 10),
+        party_size: party,
         reserved_for,
         note: document.getElementById('rNote').value.trim()
       });
       document.getElementById('reserveCode').textContent = 'Reservation R#' + String(id).padStart(4,'0');
+      document.getElementById('resPay').innerHTML = payPanelHTML('reservation', id, 50000 * party);
       document.getElementById('reserveForm').classList.add('hidden');
       document.getElementById('reserveOk').classList.remove('hidden');
     }catch(e){
@@ -444,6 +496,59 @@
     if (!res.ok){ throw new Error('HTTP ' + res.status + ' ' + await res.text()); }
     return await res.json();
   }
+
+  /* ---------- deposit + transfer proof ---------- */
+  function payPanelHTML(kind, id, amount){
+    const code = kind === 'order'
+      ? 'Pesanan #' + String(id).padStart(4,'0')
+      : 'Reservasi R#' + String(id).padStart(4,'0');
+    const waMsg = encodeURIComponent('Halo Homeslice, ini bukti transfer untuk ' + code + ' (DP ' + fmt(amount) + ').');
+    return `
+      <div class="depbox">
+        <div class="dephead">To confirm, transfer a deposit of</div>
+        <div class="depamt">${fmt(amount)}</div>
+        <div class="bankrow">
+          <div>
+            <div class="bk">${BANK.bank}</div>
+            <div class="acc">${BANK.acc}</div>
+            <div class="bk">a.n. ${BANK.holder}</div>
+          </div>
+          <button class="copy" onclick="copyAcc()">Copy</button>
+        </div>
+        <div class="depnote">Then send your transfer proof — choose one:</div>
+        <a class="waBtn" href="https://wa.me/${WA}?text=${waMsg}" target="_blank" rel="noopener">Send proof on WhatsApp</a>
+        <label class="upBtn" for="up_${kind}">Or upload proof here</label>
+        <input id="up_${kind}" type="file" accept="image/*" style="display:none" onchange="uploadProof('${kind}', ${id}, this)" />
+        <div class="upstat" id="upstat_${kind}"></div>
+      </div>`;
+  }
+  function copyAcc(){
+    if (navigator.clipboard) navigator.clipboard.writeText(BANK.acc).catch(()=>{});
+    toast('Account number copied');
+  }
+  async function uploadProof(kind, id, input){
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const stat = document.getElementById('upstat_' + kind);
+    stat.classList.remove('ok2'); stat.textContent = 'Uploading…';
+    const ext = ((file.type.split('/')[1]) || 'jpg').replace('jpeg','jpg');
+    const path = kind + 's/' + id + '-' + Date.now() + '.' + ext;
+    try{
+      const up = await fetch(STORAGE + '/object/proofs/' + path, {
+        method: 'POST',
+        headers: { ...HEAD, 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true' },
+        body: file
+      });
+      if (!up.ok) throw new Error('upload ' + up.status);
+      const url = STORAGE + '/object/public/proofs/' + path;
+      await rpc('attach_payment_proof', { kind, id, url });
+      stat.textContent = '✓ Proof received — we’ll confirm shortly. Thank you!';
+      stat.classList.add('ok2');
+    }catch(e){
+      stat.textContent = 'Upload failed — please send it on WhatsApp instead.';
+    }
+  }
+
   function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   let toastT;
   function toast(msg){
